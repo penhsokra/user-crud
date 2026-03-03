@@ -4,41 +4,44 @@ on:
   push:
     branches:
       - main
-
+      
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Updated version
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4 # Updated version
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21' # CHANGED FROM 17 TO 21
+          java-version: '21'
 
       - name: Build WAR
         run: mvn clean package
 
-      - name: Copy WAR to EC2
+      - name: Copy WAR to EC2 Staging
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          # Verify your project's artifact name matches 'app.war' 
-          # Or use 'target/*.war'
-          source: "target/*.war" 
-          target: "/opt/tomcat/webapps/"
-          strip_components: 1 # This prevents it from creating a 'target' folder on EC2
+          source: "target/*.war"
+          target: "/home/ubuntu/deploy_staging" # Upload to a directory you own
+          strip_components: 1
 
-      - name: Restart Tomcat
+      - name: Deploy and Restart Tomcat
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Move file with sudo to ensure it bypasses folder restrictions
+            sudo mv /home/ubuntu/deploy_staging/*.war /opt/tomcat/webapps/
+            # Fix ownership of the moved file
+            sudo chown tomcat:tomcat /opt/tomcat/webapps/*.war
+            # Restart the service
             sudo systemctl restart tomcat
