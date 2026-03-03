@@ -28,8 +28,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
+          port: 22
           source: "target/*.war"
           target: "/opt/tomcat/webapps/"
+          overwrite: true
+          debug: true
 
       - name: Restart Tomcat
         uses: appleboy/ssh-action@v0.1.6
@@ -37,5 +40,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
+          port: 22
           script: |
             sudo systemctl restart tomcat
