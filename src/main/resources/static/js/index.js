@@ -4,14 +4,35 @@ let allUsers = [];
 document.addEventListener('DOMContentLoaded', fetchUsers);
 
 async function fetchUsers() {
+    toggleLoader(true);
     try {
         const response = await fetch(API_URL);
         allUsers = await response.json();
         renderUsers(allUsers);
     } catch (error) {
         console.error('Error fetching users:', error);
+    } finally {
+        toggleLoader(false);
     }
 }
+
+function toggleLoader(show) {
+    document.getElementById('loaderOverlay').style.display = show ? 'flex' : 'none';
+}
+
+function toggleButtonLoading(btnId, isLoading, text) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (isLoading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+    } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        if (text) document.getElementById(btnId + 'Text').innerText = text;
+    }
+}
+
 
 function renderUsers(users) {
     const tableBody = document.getElementById('userTableBody');
@@ -53,6 +74,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         role: document.getElementById('role').value
     };
 
+    toggleButtonLoading('submitBtn', true);
     try {
         let response;
         if (userId) {
@@ -76,19 +98,26 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         }
     } catch (error) {
         console.error('Error saving user:', error);
+    } finally {
+        toggleButtonLoading('submitBtn', false, userId ? 'Save User' : 'Save User');
     }
 });
 
+
 async function deleteUser(id) {
     if (confirm('Are you sure you want to delete this user?')) {
+        toggleLoader(true);
         try {
             const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
             if (response.ok) fetchUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
+        } finally {
+            toggleLoader(false);
         }
     }
 }
+
 
 function editUser(id) {
     const user = allUsers.find(u => u.id === id);
