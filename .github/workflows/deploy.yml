@@ -2,69 +2,42 @@ name: Deploy to EC2 Tomcat
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Build & Rename
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
+      - run: |
+          mvn clean package -DskipTests
+          mv target/*.war target/ROOT.war
 
-      - name: Build WAR
-        run: mvn clean package -DskipTests
-
-      # RENAME THE WAR FILE TO ROOT.war
-      - name: Rename Artifact
-        run: mv target/*.war target/ROOT.war
-
-      # CLEANUP THE EXISTING ROOT FOLDER ON EC2
-      - name: Cleanup Old ROOT Folder
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }} 
-          script: |
-            sudo rm -rf /opt/tomcat/webapps/ROOT
-            sudo rm -f /opt/tomcat/webapps/ROOT.war
-
-      - name: Copy ROOT.war to EC2 Landing Zone
+      - name: Upload to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           source: "target/ROOT.war"
           target: "/home/ubuntu"
           strip_components: 1
-          overwrite: true
 
-      - name: Deploy and Restart
+      - name: Finalize Deployment
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 1. Ensure the destination is clear (using sudo)
-            sudo rm -rf /opt/tomcat/webapps/ROOT
-            sudo rm -f /opt/tomcat/webapps/ROOT.war
-            
-            # 2. Move the file from your home folder to Tomcat
+            sudo rm -rf /opt/tomcat/webapps/ROOT*
             sudo mv /home/ubuntu/ROOT.war /opt/tomcat/webapps/
-            
-            # 3. Set correct ownership (optional but recommended)
-            sudo chown tomcat:tomcat /opt/tomcat/webapps/ROOT.war || true
-            
-            # 4. Restart service
+            sudo chown tomcat:tomcat /opt/tomcat/webapps/ROOT.war
             sudo systemctl restart tomcat
