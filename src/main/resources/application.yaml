@@ -2,7 +2,7 @@ spring:
   application:
     name: user-crud
   datasource:
-    url: jdbc:postgresql://localhost:5432/appdb?currentSchema=appdb
+    url: jdbc:postgresql://localhost:5432/appdb
     username: appuser
     password: appuser
     driver-class-name: org.postgresql.Driver

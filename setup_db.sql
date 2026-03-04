@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Grant table-level permissions
 ALTER TABLE users OWNER TO appuser;
+GRANT USAGE ON SCHEMA appdb TO appuser;
 GRANT ALL PRIVILEGES ON TABLE users TO appuser;
-GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO appuser;
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE users_id_seq TO appuser;
+
 
