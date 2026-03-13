@@ -102,6 +102,82 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- Jacoco for code coverage -->
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.10</version>
+    <executions>
+        <execution>
+            <id>prepare-agent</id>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
+		<!-- Checkstyle -->
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-checkstyle-plugin</artifactId>
+		    <version>3.6.0</version>
+		    <configuration>
+		        <configLocation>sun_checks.xml</configLocation>
+		        <outputFile>${project.build.directory}/checkstyle-result.xml</outputFile>
+		        <outputFileFormat>xml</outputFileFormat>
+		        <failOnViolation>false</failOnViolation>
+		    </configuration>
+		</plugin>
+		
+		<!-- PMD -->
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-pmd-plugin</artifactId>
+		    <version>3.18.0</version>
+		    <configuration>
+		        <targetJdk>17</targetJdk>
+		        <linkXRef>false</linkXRef>
+		        <printFailingErrors>false</printFailingErrors>
+		        <outputFile>${project.build.directory}/pmd.xml</outputFile>
+		        <xmlOutput>true</xmlOutput>
+		    </configuration>
+		</plugin>
+		
+		<!-- SpotBugs -->
+		<plugin>
+		    <groupId>com.github.spotbugs</groupId>
+		    <artifactId>spotbugs-maven-plugin</artifactId>
+		    <version>4.7.3.0</version>
+		    <configuration>
+		        <xmlOutput>true</xmlOutput>
+		        <outputDirectory>${project.build.directory}</outputDirectory>
+		        <failOnError>false</failOnError>
+		        <effort>Max</effort>
+		        <threshold>Low</threshold>
+		    </configuration>
+		</plugin>
+		
+		<!-- OWASP Dependency Check -->
+		<plugin>
+		    <groupId>org.owasp</groupId>
+		    <artifactId>dependency-check-maven</artifactId>
+		    <version>8.0.2</version>
+		    <configuration>
+		        <format>XML</format>
+		        <outputDirectory>${project.build.directory}</outputDirectory>
+		        <failBuildOnCVSS>0</failBuildOnCVSS>
+		    </configuration>
+		</plugin>
+			
 		</plugins>
 	</build>
 	<repositories>
